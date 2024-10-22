@@ -19,7 +19,7 @@
 """
 
 import json
-from OppoServer import OppoServer, Endpoint, DeviceInfo, IPv4Info
+from OppoServer import OppoServer, TokenStatus
 from credentials import *
 
 def main():
@@ -32,11 +32,7 @@ def main():
     config_msg = oppo.webconfig()
     #print(json.dumps(config_msg))
 
-    login_msg = oppo.login()
-    print(login_msg)
-
-    eps = [DeviceInfo, IPv4Info]
-    resp = oppo.batch(eps)
+    resp = oppo.token_status()
     print(resp)
 
 if __name__ == "__main__":

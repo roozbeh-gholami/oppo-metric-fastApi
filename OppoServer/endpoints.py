@@ -21,6 +21,7 @@
 class Endpoint:
     DATA = {}
     NAME = None
+    PLAIN = False
 
     def __init__(self, uri=None):
         if (not uri):
@@ -30,7 +31,7 @@ class Endpoint:
             uri = uri[1:]
         self._uri = f"/api/{uri}"
 
-    def encode(self, *args, **kwargs):
+    def uri(self, *args, **kwargs):
         return f"{self._uri}".format(*args, **kwargs)
 
     def batch(self):
@@ -90,6 +91,7 @@ class SimInfo(Endpoint):
 
 class CheckConflict(Endpoint):
     URI = "/NetLan/CheckConflict"
+    PLAIN = True
 
 class Mac(Endpoint):
     URI = "/NetLan/GetMac"
@@ -115,6 +117,9 @@ class WifiIfaceConfig(Endpoint):
 class WifiDetectWifi(Endpoint):
     URI = "/Wifi/DetectWifi"
 
+class WifiChannelList(Endpoint):
+    URI = "/Wifi/GetChannelList"
+
 class NetConnectivity(Endpoint):
     URI = "/NetWan/CheckNetConnectivity"
 
@@ -138,6 +143,7 @@ class DiagStatus(Endpoint):
 
 class IsLogin(Endpoint):
     URI = "/webCgi/isLogin"
+    PLAIN = True
 
 class DeviceInfo(Endpoint):
     URI = "/ommng/GetDeviceInfo"
@@ -163,3 +169,7 @@ class NetStats(Endpoint):
     DATA = {
         "Interface": "rmnet_data0"
     }
+
+class CheckState(Endpoint):
+    URI = "/UpgMng/CheckState"
+    PLAIN = True
