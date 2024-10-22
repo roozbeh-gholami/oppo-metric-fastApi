@@ -19,8 +19,7 @@
 """
 
 import json
-import hashlib
-from OppoServer.Oppo import OppoServer
+from OppoServer import OppoServer, Endpoint, DeviceInfo, IPv4Info
 from credentials import *
 
 def main():
@@ -31,10 +30,14 @@ def main():
     )
 
     config_msg = oppo.webconfig()
-    print(json.dumps(config_msg))
+    #print(json.dumps(config_msg))
 
     login_msg = oppo.login()
-    #print(login_msg)
+    print(login_msg)
+
+    eps = [DeviceInfo, IPv4Info]
+    resp = oppo.batch(eps)
+    print(resp)
 
 if __name__ == "__main__":
     main()

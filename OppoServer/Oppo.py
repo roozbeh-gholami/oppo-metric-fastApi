@@ -88,7 +88,10 @@ class OppoServer:
         return hashlib.sha256((data + random_token + jwt).encode()).digest()
 
     def _post(self, uri, *args, **kwargs):
-        data = dict(kwargs)
+        if (len(args) > 0):
+            data = args[0]
+        else:
+            data = dict(kwargs)
         encrypted_data, random_token = self._encrypt_data(data)
         jwt = self._generate_jwt()
         checksum = self._calculate_sha256(encrypted_data, random_token, jwt)
@@ -107,19 +110,27 @@ class OppoServer:
         response = self.session.post(url, json=post_payload)
         response.raise_for_status()
 
-        if response.headers.get('Content-Type') == 'application/json':
-            return response.json
-        resp = self._decrypt_response(response.content)
-        jresp = json.loads(resp)
-        if (jresp.get('code', 1) != 0):
-            raise ValueError(f"Error code: {jresp.get('code', 1)}")
-        return jresp.get('data', {})
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            resp = self._decrypt_response(response.text)
+            jresp = json.loads(resp)
+            if (jresp.get('code', 1) != 0):
+                raise ValueError(f"Error code: {jresp.get('code', 1)}")
+            return jresp.get('data', {})
 
     def _decrypt_response(self, encrypted_response):
         cipher = Cipher(algorithms.AES(self.key), modes.CTR(self.iv[:len(self.iv) // 2]))
         decryptor = cipher.decryptor()
         decrypted_data = decryptor.update(b64decode(encrypted_response)) + decryptor.finalize()
         return decrypted_data
+
+    def batch(self, endpoints):
+        batch = []
+        for cls in endpoints:
+            if cls is not ep.Endpoint and cls is not ep.BatchRequest:
+                batch.append(cls().batch())
+        return self._post(ep.BatchRequest, batch)
 
     def login(self):
         return self._post(ep.Login, username=self.username, password=hashlib.sha256(self.password.encode()).hexdigest())
