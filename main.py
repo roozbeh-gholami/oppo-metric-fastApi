@@ -18,9 +18,69 @@
  */
 """
 
-import json
-from OppoServer import OppoServer, TokenStatus
+from OppoServer import OppoServer
 from credentials import *
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from cachetools import TTLCache
+
+
+limiter = Limiter(key_func=lambda request: request.client.host)
+app = FastAPI()
+
+# Set up a cache, time-to-live 5 seconds
+cache = TTLCache(maxsize=1, ttl=5)
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    # Check if there is cached data to return when rate limit is exceeded
+    if "latest_data" in cache:
+        return JSONResponse(
+            status_code=200,
+            content=cache["latest_data"],
+        )
+    else:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error code": 1,
+                "detail": "Too many requests (1 per 5 seconds). Please wait and try again."},
+        )
+
+
+
+@app.get("/api/metrics")
+@limiter.limit("1/5second")  # Limit to 1 request every 5 seconds
+async def get_metrics(request: Request):
+    # Replace these with actual values or a function to fetch real metrics
+    try:
+        data = request_metrics()
+
+        # Update cache with the latest data
+        cache["latest_data"] = data
+
+        return data
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to fetch metrics", "details": str(e)},
+        )
+def request_metrics():
+    oppo = OppoServer(
+        base_url=BASE_URL,
+        username=USERNAME,
+        password=PASSWORD
+    )
+    
+    config_msg = oppo.webconfig()
+
+    resp = oppo.token_status()
+
+    resp = oppo.nas_signal_info()
+    return resp
+    
 
 def main():
     oppo = OppoServer(
@@ -28,12 +88,23 @@ def main():
         username=USERNAME,
         password=PASSWORD
     )
-
+    
     config_msg = oppo.webconfig()
     #print(json.dumps(config_msg))
 
     resp = oppo.token_status()
     print(resp)
+    
+    resp = oppo.nas_signal_info()
+    print(resp)
 
 if __name__ == "__main__":
     main()
+
+
+
+'''
+resp = oppo.nas_signal_info()
+{'4G': {'AvgRsrp': -81, 'Rsrp': -81, 'Rsrq': -15, 'Rssi': -49, 'Sinr': 2}, 
+ '5G': {'AvgRsrp': -110, 'Rsrp': -113, 'Rsrq': -11, 'Sinr': 8}, 'ErrorCode': 0, 'NetMode': '5G'}
+'''

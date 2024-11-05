@@ -189,3 +189,24 @@ class OppoServer:
 
     def token_status(self):
         return self._post(ep.TokenStatus)
+    
+    def sim_status(self):
+        return self._post(ep.SimInfo)
+    
+    def net_status(self):
+        return self._post(ep.NetStatus)
+
+    def wan_type(self):
+        return self._post(ep.WanType)
+    
+    def wifi_channel_list(self):
+        return self._post(ep.WifiChannelList)
+    
+    def sim_info(self):
+        return self._post(ep.SimInfo)
+    
+    def cell_info(self):
+        return self._post(ep.NASServiceStatus)
+    
+    def nas_signal_info(self):
+        return self._post(ep.NASSignalInfo)
