@@ -21,7 +21,8 @@
 from OppoServer import OppoServer
 from credentials import *
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import  JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from cachetools import TTLCache
@@ -29,6 +30,9 @@ from cachetools import TTLCache
 
 limiter = Limiter(key_func=lambda request: request.client.host)
 app = FastAPI()
+
+# add the static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Set up a cache, time-to-live 5 seconds
 cache = TTLCache(maxsize=1, ttl=5)
@@ -81,7 +85,18 @@ def request_metrics():
     resp = oppo.nas_signal_info()
     return resp
     
+# show the index.html file at the root URL
+@app.get("/", response_class=FileResponse)
+async def read_root():
+    return "static/index.html"
 
+
+@app.get("/metrics-url")
+async def get_metrics_url(request: Request):
+    # Generate the full URL for the metrics endpoint
+    base_url = request.url.scheme + "://" + request.url.hostname + ":" + str(request.url.port)
+    metrics_url = f"{base_url}/api/metrics"
+    return {"metrics_url": metrics_url}
 def main():
     oppo = OppoServer(
         base_url=BASE_URL,

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Oppo 5G Metrics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        a {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #007BFF;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+    <script>
+        async function fetchMetricsUrl() {
+            const response = await fetch('/metrics-url');
+            const data = await response.json();
+            document.getElementById('metricsLink').href = data.metrics_url;
+            document.getElementById('metricsLink').textContent = data.metrics_url;
+        }
+        window.onload = fetchMetricsUrl;  // Call fetchMetricsUrl when the page loads
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the 5G metrics FastAPI !</h1>
+        <p>You can get the 5G metrics by clicking the link below:</p>
+        <a id="metricsLink" href="#">Loading...</a>
+    </div>
+</body>
+</html>
